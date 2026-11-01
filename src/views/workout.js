@@ -1,5 +1,6 @@
 import * as E from '../engine.js';
-import { getActiveWorkout, getWorkoutSets, put, deleteWorkout } from '../db.js';
+import { getActiveWorkout, getWorkoutSets, getHistory, put, deleteWorkout, saveWorkoutWithSets } from '../db.js';
+import { suggestionFor } from '../session.js';
 import { nowStamp } from '../clock.js';
 import { startRest, stopRest, keepAwake, releaseAwake } from '../timer.js';
 import { $, $$, esc, fmtDuration, unitLabel, toast } from '../ui.js';
@@ -27,6 +28,8 @@ export async function render({ app, program, navigate }) {
   const session = E.buildSession(program, workout.templateId, workout.week, { minimum: workout.minimum });
   const phase = E.phaseForWeek(program, workout.week);
   let sets = await getWorkoutSets(workout.id);
+  const history = await getHistory();
+  const openSubs = new Set(); // cartes dont la liste de remplacement est ouverte
 
   const setsOf = (plannedId) => sets.filter((s) => s.plannedExerciseId === plannedId).sort((a, b) => a.setIndex - b.setIndex);
 
@@ -48,10 +51,38 @@ export async function render({ app, program, navigate }) {
           </div>
           <span class="badge${doneCount === list.length ? ' accent' : ''}" data-count>${doneCount}/${list.length}</span>
         </div>
+        ${suggestionLine(planned, currentId)}
         <details><summary>Consigne technique</summary><p>${esc(ex.cue)}</p></details>
+        ${replaceBlock(planned, currentId)}
         <div class="set-head"><span>#</span><span>Charge (kg)</span><span>${esc(unit)}</span><span>✓</span></div>
         ${list.map((s) => setRow(s, planned)).join('')}
       </section>`;
+  }
+
+  function suggestionLine(planned, exerciseId) {
+    const sug = suggestionFor(program, workout, planned, exerciseId, history);
+    const unit = unitLabel(program.exercises[exerciseId].unit);
+    let last = '';
+    if (sug.last) {
+      const w = sug.last.weightKg != null ? `${fmtNum(sug.last.weightKg)} kg × ` : '';
+      last = `<div class="suggest">Dernière fois : ${w}${sug.last.values.join('/')} ${esc(unit)}</div>`;
+    }
+    const target = sug.weightKg != null ? `${fmtNum(sug.weightKg)} kg × ${sug.target} ${unit}` : `${sug.target} ${unit}`;
+    return `${last}<div class="suggest${sug.mode === 'test' ? ' test' : ''}">
+      ${sug.mode === 'test' ? '🧪 <strong>Séance test</strong> — ' : `🎯 <strong>${esc(target)}</strong> — `}${esc(sug.message)}</div>`;
+  }
+
+  function replaceBlock(planned, currentId) {
+    const plannedEx = program.exercises[planned.id];
+    const options = [...(plannedEx.substitutes || [])];
+    if (currentId !== planned.id) options.unshift(planned.id);
+    const choices = options.filter((id) => id !== currentId && program.exercises[id]);
+    if (!choices.length) return '';
+    const open = openSubs.has(planned.id);
+    return `
+      <button type="button" class="small-btn ghost" data-act="toggle-subs" aria-expanded="${open}">⇄ Remplacer</button>
+      ${open ? `<div class="subs">${choices.map((id) => `
+        <button type="button" class="small-btn" data-sub="${esc(id)}">${id === planned.id ? '↩ ' : ''}${esc(program.exercises[id].name)}</button>`).join('')}</div>` : ''}`;
   }
 
   function setRow(s, planned) {
@@ -155,7 +186,31 @@ export async function render({ app, program, navigate }) {
       return;
     }
 
+    if (btn.dataset.sub) {
+      const card = btn.closest('[data-planned]');
+      const planned = session.exercises.find((x) => x.id === card.dataset.planned);
+      const newId = btn.dataset.sub;
+      const sug = suggestionFor(program, workout, planned, newId, history);
+      const list = setsOf(planned.id);
+      for (const s of list) {
+        s.exerciseId = newId; // le remplacement est enregistré sous l'id du substitut
+        if (!s.done) { s.weightKg = sug.weightKg; s.value = sug.target; }
+      }
+      await saveWorkoutWithSets(workout, list);
+      openSubs.delete(planned.id);
+      card.outerHTML = exerciseCard(planned);
+      toast(`Remplacé par ${program.exercises[newId].name}`);
+      return;
+    }
+
     const act = btn.dataset.act;
+    if (act === 'toggle-subs') {
+      const card = btn.closest('[data-planned]');
+      const id = card.dataset.planned;
+      if (openSubs.has(id)) openSubs.delete(id); else openSubs.add(id);
+      card.outerHTML = exerciseCard(session.exercises.find((x) => x.id === id));
+      return;
+    }
     if (act === 'finish') {
       const done = sets.filter((s) => s.done).length;
       $('#finish-summary', app).textContent = `${done} série${done > 1 ? 's' : ''} validée${done > 1 ? 's' : ''} sur ${sets.length} · durée ${fmtDuration(elapsed(workout))}`;

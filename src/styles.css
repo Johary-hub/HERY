@@ -201,3 +201,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
   background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
   padding: 10px 16px; border-radius: 999px; z-index: 40; font-size: 0.9rem;
 }
+
+.exercise [data-act='toggle-subs'] { margin: 2px 0 10px; }
+.exercise .subs { margin: 0 0 12px; }

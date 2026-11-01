@@ -12,7 +12,7 @@ export async function loadContext(program) {
 
 /** Crée la séance (et toutes ses séries, non validées) puis l'enregistre. */
 export async function startWorkout(program, { templateId, minimum = false }) {
-  const { settings, date } = await loadContext(program);
+  const { settings, history, date } = await loadContext(program);
   const info = E.weekInfo(program, settings, date);
   if (!info.started) throw new Error('Le programme n’a pas encore commencé.');
   const session = E.buildSession(program, templateId, info.week, { minimum });
@@ -22,11 +22,18 @@ export async function startWorkout(program, { templateId, minimum = false }) {
   };
   const sets = [];
   for (const ex of session.exercises) {
+    // Pré-remplissage avec la suggestion du moteur de progression
+    const sug = suggestionFor(program, workout, ex, ex.id, history);
     for (let i = 0; i < ex.sets; i++) {
       sets.push({ id: uuid(), workoutId: workout.id, exerciseId: ex.id, plannedExerciseId: ex.id,
-        setIndex: i, weightKg: null, value: null, done: false });
+        setIndex: i, weightKg: sug.weightKg, value: sug.target, done: false });
     }
   }
   await saveWorkoutWithSets(workout, sets);
   return workout;
+}
+
+/** Suggestion pour un exercice (prévu ou substitut) dans le contexte d'une séance. */
+export function suggestionFor(program, workout, planned, exerciseId, history) {
+  return E.suggest(program, { exerciseId, range: planned.range, deload: workout.deload }, history.workouts, history.sets);
 }
