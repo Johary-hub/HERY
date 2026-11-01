@@ -54,6 +54,8 @@ async function start() {
   window.addEventListener('hashchange', route);
   if (!location.hash) history.replaceState(null, '', '#/today');
   route();
+  // Demande au navigateur de ne pas effacer les données (accordé d'office aux PWA installées)
+  navigator.storage?.persist?.().catch(() => {});
 }
 
 // Service worker (cache hors ligne complet). Absent en mode dev.
