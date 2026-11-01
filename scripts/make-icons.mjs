@@ -20,7 +20,7 @@ const targets = [
 for (const t of targets) {
   const inner = Math.round(t.size * (1 - 2 * t.pad));
   await page.setViewportSize({ width: t.size, height: t.size });
-  await page.setContent(`<html><body style="margin:0;background:#12161c;display:flex;align-items:center;justify-content:center;width:${t.size}px;height:${t.size}px">
+  await page.setContent(`<html><body style="margin:0;background:#09090b;display:flex;align-items:center;justify-content:center;width:${t.size}px;height:${t.size}px">
     <div style="width:${inner}px;height:${inner}px">${svg.replace('<svg ', `<svg width="${inner}" height="${inner}" `)}</div></body></html>`);
   await page.screenshot({ path: join(dir, t.name), omitBackground: false });
 }

@@ -1,4 +1,4 @@
-# Hery — carnet d'entraînement (PWA Android)
+# Mahery — carnet d'entraînement (PWA Android)
 
 **App en ligne : https://johary-hub.github.io/HERY/**
 

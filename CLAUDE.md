@@ -1,4 +1,4 @@
-# CLAUDE.md — Projet « Hery » (carnet d'entraînement Android)
+# CLAUDE.md — Projet « Mahery » (carnet d'entraînement Android)
 
 Ce fichier est lu automatiquement par Claude Code. Il décrit l'application à construire.
 

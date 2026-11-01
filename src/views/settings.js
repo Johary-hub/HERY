@@ -118,7 +118,7 @@ export async function render({ app, program, navigate }) {
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `hery-sauvegarde-${today()}.json`;
+      a.download = `mahery-sauvegarde-${today()}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();

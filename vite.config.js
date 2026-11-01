@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false, // enregistrement manuel dans src/main.js
       manifest: {
-        name: 'Hery — Carnet d’entraînement',
-        short_name: 'Hery',
+        name: 'Mahery — Carnet d’entraînement',
+        short_name: 'Mahery',
         description: 'Carnet d’entraînement 24 semaines, 100 % hors ligne.',
         lang: 'fr',
         start_url: '.',

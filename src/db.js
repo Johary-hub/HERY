@@ -1,4 +1,4 @@
-// Accès IndexedDB (base « hery », version 1). Aucune donnée ne quitte le téléphone.
+// Accès IndexedDB (base « hery », version 1 — nom interne conservé pour ne pas perdre les données). Rien ne quitte le téléphone.
 import { openDB } from 'idb';
 
 export const STORES = ['workouts', 'sets', 'body', 'settings'];
