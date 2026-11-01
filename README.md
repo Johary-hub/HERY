@@ -1,5 +1,7 @@
 # Hery — carnet d'entraînement (PWA Android)
 
+**App en ligne : https://johary-hub.github.io/HERY/**
+
 Application web installable, 100 % hors ligne, qui suit le programme de 24 semaines décrit dans `public/program.json` (source de vérité). Toutes les données restent sur le téléphone (IndexedDB).
 
 ## Développement
