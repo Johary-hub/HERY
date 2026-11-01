@@ -31,7 +31,11 @@ async function route() {
   try {
     // Chaque vue peut exposer une fonction de nettoyage (minuteur, wake lock…)
     if (route.cleanup) { route.cleanup(); route.cleanup = null; }
-    const cleanup = await view.render({ app, program, param, navigate, isCurrent: () => token === renderToken });
+    // Conteneur neuf à chaque rendu : les écouteurs de l'écran précédent disparaissent avec lui.
+    const root = document.createElement('div');
+    root.className = `view view-${name}`;
+    app.replaceChildren(root);
+    const cleanup = await view.render({ app: root, program, param, navigate, isCurrent: () => token === renderToken });
     if (typeof cleanup === 'function') route.cleanup = cleanup;
     window.scrollTo(0, 0);
   } catch (err) {
