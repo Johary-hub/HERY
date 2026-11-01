@@ -2,6 +2,7 @@ import * as E from '../engine.js';
 import { getSettings, saveSetting, getHistory, exportAll, importAll, resetAll, validateExport } from '../db.js';
 import { today } from '../clock.js';
 import { $, $$, esc, fmtDate, toast, DAY_SHORT } from '../ui.js';
+import { icon, ring } from '../icons.js';
 
 const pct = (r) => (r == null ? '—' : `${Math.round(r * 100)} %`);
 
@@ -16,10 +17,11 @@ export async function render({ app, program, navigate }) {
   const persisted = navigator.storage?.persisted ? await navigator.storage.persisted() : null;
 
   app.innerHTML = `
-    <h1>Réglages</h1>
+    <header class="topbar"><div><p class="eyebrow">Préférences</p><h1>Réglages</h1></div>
+      <span class="icon-btn" aria-hidden="true">${icon('settings', 22)}</span></header>
 
     <section class="card stack">
-      <h3>Programme</h3>
+      <div class="row nowrap"><span class="li-ico" style="width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)">${icon('calendar', 20)}</span><h3 style="margin:0">Programme</h3></div>
       <div><label for="s-start">Date de début</label>
         <input id="s-start" type="date" value="${esc(settings.startDate)}" /></div>
       <p class="muted small">Par défaut : ${esc(fmtDate(program.startDate, { year: true }))}. ${program.totalWeeks} semaines.</p>
@@ -37,19 +39,21 @@ export async function render({ app, program, navigate }) {
       <div class="toggle">
         <div><h3>Option 4 jours (${esc(p3.name)})</h3>
           <p class="muted small">Rotation ${esc(p3.option4days.rotation.join(' / '))}, jours ${p3.option4days.trainingDays.map((d) => DAY_SHORT[d - 1]).join(' ')}.</p></div>
-        <input type="checkbox" id="s-four" ${settings.fourDayOption ? 'checked' : ''} ${canToggle4 ? '' : 'disabled'} aria-label="Activer l’option 4 jours" />
+        <label class="switch" style="margin:0"><input type="checkbox" id="s-four" ${settings.fourDayOption ? 'checked' : ''} ${canToggle4 ? '' : 'disabled'} aria-label="Activer l’option 4 jours" /><span></span></label>
       </div>
-      <p class="small">Condition : ${esc(p3.option4days.unlockCondition)}.<br>
-        Assiduité actuelle : <strong>${pct(unlock.rate)}</strong> (${unlock.done}/${unlock.planned} séances)
-        ${unlock.complete ? '' : ` — décision possible à partir de S${p3.weeks[0]}`}.</p>
-      ${unlock.unlocked ? '<p class="alert ok small">Condition remplie 🎉</p>' : ''}
+      <div class="row nowrap" style="gap:14px">
+        ${ring(unlock.rate || 0, { size: 64, stroke: 7, color: unlock.rate != null && unlock.rate >= unlock.threshold ? 'var(--accent)' : 'var(--orange)', inner: `<span style="font-size:.85rem">${pct(unlock.rate)}</span>` })}
+        <p class="small grow" style="margin:0">Assiduité S1–S12 : <strong>${unlock.done}/${unlock.planned}</strong> séances · seuil ${pct(unlock.threshold)}</p>
+      </div>
+      <p class="muted small">Condition : ${esc(p3.option4days.unlockCondition)}${unlock.complete ? '' : ` — décision possible à partir de S${p3.weeks[0]}`}.</p>
+      ${unlock.unlocked ? `<div class="alert ok">${icon('check', 20)}<div>Condition remplie 🎉</div></div>` : ''}
     </section>` : ''}
 
     <section class="card stack">
       <h3>Sauvegarde</h3>
       <p class="muted small">Toutes les données restent sur ce téléphone. Exporte régulièrement (changement de téléphone, réinstallation).</p>
-      <button type="button" class="primary block" data-act="export">Exporter (JSON)</button>
-      <label class="btn block" for="s-import" style="margin:0;color:var(--text)">Importer une sauvegarde…</label>
+      <button type="button" class="primary block" data-act="export">${icon('download', 20)}Exporter (JSON)</button>
+      <label class="btn block" for="s-import" style="margin:0;color:var(--text)">${icon('upload', 20)}Importer une sauvegarde</label>
       <input type="file" id="s-import" accept="application/json,.json" hidden />
       ${persisted === false ? '<button type="button" class="block ghost small-btn" data-act="persist">Protéger le stockage contre l’effacement automatique</button>' : ''}
       ${persisted ? '<p class="muted small">Stockage protégé ✓</p>' : ''}
@@ -57,7 +61,7 @@ export async function render({ app, program, navigate }) {
 
     <section class="card stack">
       <h3>Zone dangereuse</h3>
-      <button type="button" class="danger block" data-act="reset">Réinitialiser toutes les données</button>
+      <button type="button" class="danger block" data-act="reset">${icon('trash', 20)}Réinitialiser toutes les données</button>
     </section>
 
     <p class="muted small" style="text-align:center">${esc(program.name)} · programme v${esc(program.version)}</p>`;

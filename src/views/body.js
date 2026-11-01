@@ -1,8 +1,9 @@
 import * as E from '../engine.js';
 import { getAll, put, del } from '../db.js';
 import { today } from '../clock.js';
-import { makeChart, dateAxis, tooltipDate, pt, COLORS } from '../charts.js';
+import { makeChart, dateAxis, tooltipDate, pt, COLORS, fade } from '../charts.js';
 import { $, esc, fmtDate, num, toast, uuid } from '../ui.js';
+import { icon } from '../icons.js';
 
 const parseNum = (v) => {
   const s = String(v ?? '').trim().replace(',', '.');
@@ -19,6 +20,11 @@ function stallText(program) {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
+const signed = (raw) => {
+  const d = Math.round(raw * 10) / 10; // arrondi avant le signe : pas de « +0 »
+  return `${d > 0 ? '+' : d < 0 ? '−' : ''}${num(Math.abs(d))}`;
+};
+
 export async function render({ app, program }) {
   let charts = [];
   const destroy = () => { charts.forEach((c) => c.destroy()); charts = []; };
@@ -31,48 +37,80 @@ export async function render({ app, program }) {
     const weekly = E.weeklyAverages(entries);
     const stall = E.stallAlert(weekly);
     const lastAvg = weekly[weekly.length - 1];
-    const delta = weekly.length > 1 ? lastAvg.avg - weekly[0].avg : null;
+    const prevAvg = weekly[weekly.length - 2];
+    const total = weekly.length > 1 ? lastAvg.avg - weekly[0].avg : null;
+    const week = prevAvg ? lastAvg.avg - prevAvg.avg : null;
+    const waistDelta = waists.length > 1 ? waists[waists.length - 1].waistCm - waists[0].waistCm : null;
 
     app.innerHTML = `
-      <h1>Corps</h1>
-      ${stall ? `<div class="alert"><strong>Stagnation :</strong> ta moyenne hebdomadaire ne baisse plus depuis 3 semaines. ${esc(stallText(program))}</div>` : ''}
+      <header class="topbar"><div><p class="eyebrow">Suivi</p><h1>Corps</h1></div>
+        <span class="icon-btn" aria-hidden="true">${icon('scale', 22)}</span></header>
+
+      ${stall ? `<div class="alert">${icon('warn', 20)}<div><strong>Stagnation</strong><br>Ta moyenne hebdomadaire ne baisse plus depuis 3 semaines. ${esc(stallText(program))}</div></div>` : ''}
+
+      <section class="card">
+        <div class="row between nowrap">
+          <span class="muted small">Moyenne de la semaine</span>
+          ${week != null ? `<span class="delta ${week <= 0 ? 'down' : 'up'}">${signed(week)} kg</span>` : ''}
+        </div>
+        <div class="big-number" style="margin:10px 0 4px">${lastAvg ? num(lastAvg.avg) : '—'}<small>kg</small></div>
+        <p class="muted small">${lastAvg ? `${lastAvg.n} pesée${lastAvg.n > 1 ? 's' : ''} cette semaine-là` : 'Aucune pesée pour l’instant'}</p>
+        ${weights.length ? '<div class="chart-box" style="margin-top:14px"><canvas id="c-weight" aria-label="Graphique du poids"></canvas></div>' : ''}
+      </section>
+
+      <div class="tiles">
+        <div class="tile">
+          <span class="t-icon accent">${icon('chart', 20)}</span>
+          <div class="t-value">${total == null ? '—' : signed(total)}<small>kg</small></div>
+          <span class="t-label">depuis la 1ʳᵉ semaine</span>
+        </div>
+        <div class="tile">
+          <span class="t-icon violet">${icon('ruler', 20)}</span>
+          <div class="t-value">${waists.length ? num(waists[waists.length - 1].waistCm) : '—'}<small>cm</small></div>
+          <span class="t-label">tour de taille${waistDelta != null ? ` (${signed(waistDelta)})` : ''}</span>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Nouvelle mesure</h2></div>
       <form class="card stack" id="body-form" novalidate>
         <div><label for="b-date">Date</label><input id="b-date" type="date" required value="${today()}" max="${today()}" /></div>
-        <div class="row">
-          <div class="grow"><label for="b-weight">Poids (kg)</label><input id="b-weight" inputmode="decimal" placeholder="ex. 114,6" autocomplete="off" /></div>
-          <div class="grow"><label for="b-waist">Tour de taille (cm)</label><input id="b-waist" inputmode="decimal" placeholder="ex. 118" autocomplete="off" /></div>
+        <div class="row nowrap">
+          <div class="grow"><label for="b-weight">Poids (kg)</label><input id="b-weight" inputmode="decimal" placeholder="114,6" autocomplete="off" /></div>
+          <div class="grow"><label for="b-waist">Taille (cm)</label><input id="b-waist" inputmode="decimal" placeholder="118" autocomplete="off" /></div>
         </div>
         <button class="primary block" type="submit">Enregistrer</button>
-        <p class="muted small">Pesée : ${esc(program.tracking.bodyWeight.frequency)} · Tour de taille : ${esc(program.tracking.waist.frequency)}</p>
+        <p class="muted small">Pesée ${esc(program.tracking.bodyWeight.frequency)} · tour de taille ${esc(program.tracking.waist.frequency)}.</p>
       </form>
-      <div class="stats">
-        <div class="stat"><div class="v">${lastAvg ? num(lastAvg.avg) + ' kg' : '—'}</div><div class="l">Moyenne de la dernière semaine</div></div>
-        <div class="stat"><div class="v">${delta == null ? '—' : (delta > 0 ? '+' : '') + num(delta) + ' kg'}</div><div class="l">Depuis la 1ʳᵉ semaine</div></div>
-      </div>
-      <h2>Poids</h2>
-      ${weights.length ? '<div class="card"><div class="chart-box"><canvas id="c-weight" aria-label="Graphique du poids"></canvas></div></div>' : '<p class="muted">Aucune pesée pour l’instant.</p>'}
-      ${waists.length ? '<h2>Tour de taille</h2><div class="card"><div class="chart-box"><canvas id="c-waist" aria-label="Graphique du tour de taille"></canvas></div></div>' : ''}
-      ${entries.length ? `<h2>Historique</h2><div class="card"><ul class="list">${[...entries].reverse().slice(0, 30).map((e) => `
-        <li><span>${esc(fmtDate(e.date, { year: true }))}</span>
-          <span class="muted">${e.weightKg != null ? num(e.weightKg) + ' kg' : ''}${e.weightKg != null && e.waistCm != null ? ' · ' : ''}${e.waistCm != null ? num(e.waistCm) + ' cm' : ''}</span>
-          <button class="small-btn ghost" data-del="${esc(e.id)}" aria-label="Supprimer la mesure du ${esc(e.date)}">✕</button></li>`).join('')}</ul></div>` : ''}`;
+
+      ${waists.length > 1 ? `<div class="section-title"><h2>Tour de taille</h2></div>
+        <div class="card"><div class="chart-box" style="height:200px"><canvas id="c-waist" aria-label="Graphique du tour de taille"></canvas></div></div>` : ''}
+
+      ${entries.length ? `<div class="section-title"><h2>Historique</h2><span class="muted small">${entries.length} mesures</span></div>
+        <div class="card"><ul class="list">${[...entries].reverse().slice(0, 30).map((e) => `
+        <li><div class="li-main"><span class="li-ico">${icon(e.weightKg != null ? 'scale' : 'ruler', 18)}</span>
+            <div><div>${esc(fmtDate(e.date))}</div>
+            <div class="muted small">${e.weightKg != null ? num(e.weightKg) + ' kg' : ''}${e.weightKg != null && e.waistCm != null ? ' · ' : ''}${e.waistCm != null ? num(e.waistCm) + ' cm' : ''}</div></div></div>
+          <button class="icon-btn" data-del="${esc(e.id)}" aria-label="Supprimer la mesure du ${esc(e.date)}">${icon('trash', 18)}</button></li>`).join('')}</ul></div>` : ''}`;
 
     if (weights.length) {
       charts.push(makeChart($('#c-weight', app), {
         type: 'line',
         data: { datasets: [
-          { type: 'scatter', label: 'Pesées', data: weights.map((e) => pt(e.date, e.weightKg)), pointRadius: 3, backgroundColor: COLORS.muted, borderColor: COLORS.muted },
           // Ligne principale : moyenne hebdomadaire, placée au milieu de la semaine (jeudi)
-          { label: 'Moyenne hebdo', data: weekly.map((w) => pt(E.addDays(w.monday, 3), w.avg)), borderColor: COLORS.accent, backgroundColor: COLORS.accent, borderWidth: 3, pointRadius: 4, tension: 0.2 },
+          { label: 'Moyenne hebdo', data: weekly.map((w) => pt(E.addDays(w.monday, 3), w.avg)), borderColor: COLORS.accent, backgroundColor: fade(), fill: 'start', borderWidth: 3, pointRadius: 4, pointBackgroundColor: COLORS.accent, tension: 0.35 },
+          { type: 'scatter', label: 'Pesées', data: weights.map((e) => pt(e.date, e.weightKg)), pointRadius: 3, backgroundColor: COLORS.muted, borderColor: 'transparent' },
         ] },
-        options: { scales: { x: dateAxis(weights.map((e) => pt(e.date, 0))), y: { title: { display: true, text: 'kg' } } }, plugins: { tooltip: tooltipDate(), legend: { position: 'bottom' } } },
+        options: {
+          scales: { x: dateAxis(weights.map((e) => pt(e.date, 0))), y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false } } },
+          plugins: { tooltip: tooltipDate(), legend: { position: 'bottom' } },
+        },
       }));
     }
-    if (waists.length) {
+    if (waists.length > 1) {
       charts.push(makeChart($('#c-waist', app), {
         type: 'line',
-        data: { datasets: [{ label: 'Tour de taille', data: waists.map((e) => pt(e.date, e.waistCm)), borderColor: COLORS.info, backgroundColor: COLORS.info, borderWidth: 2, pointRadius: 4 }] },
-        options: { scales: { x: dateAxis(waists.map((e) => pt(e.date, 0))), y: { title: { display: true, text: 'cm' } } }, plugins: { tooltip: tooltipDate(), legend: { display: false } } },
+        data: { datasets: [{ label: 'Tour de taille', data: waists.map((e) => pt(e.date, e.waistCm)), borderColor: COLORS.info, backgroundColor: fade('165,148,255'), fill: 'start', borderWidth: 3, pointRadius: 4, pointBackgroundColor: COLORS.info, tension: 0.35 }] },
+        options: { scales: { x: dateAxis(waists.map((e) => pt(e.date, 0))), y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false } } }, plugins: { tooltip: tooltipDate(), legend: { display: false } } },
       }));
     }
   }

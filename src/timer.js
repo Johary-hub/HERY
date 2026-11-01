@@ -6,6 +6,9 @@ let tick = null;
 let audio = null;
 let rang = false;
 
+const R = 26;
+const C = 2 * Math.PI * R;
+
 function ensureEl() {
   if (el) return el;
   el = document.createElement('div');
@@ -13,24 +16,38 @@ function ensureEl() {
   el.setAttribute('role', 'timer');
   el.innerHTML = `
     <div class="inner">
+      <div class="ring" style="width:64px;height:64px">
+        <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="${R}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
+          <circle class="arc" cx="32" cy="32" r="${R}" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"
+            stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90 32 32)" style="color:var(--accent);transition:stroke-dashoffset .25s linear"/>
+        </svg>
+        <div class="ring-inner"><span class="time" aria-live="off">0:00</span></div>
+      </div>
       <div class="grow">
         <div class="lbl">Repos</div>
-        <div class="time" aria-live="off">0:00</div>
-        <div class="bar"><div></div></div>
+        <div class="sub">Bois une gorgée</div>
       </div>
-      <button type="button" class="small-btn" data-act="minus" aria-label="Retirer 15 secondes">−15</button>
-      <button type="button" class="small-btn" data-act="plus" aria-label="Ajouter 15 secondes">+15</button>
-      <button type="button" class="small-btn primary" data-act="skip">OK</button>
+      <button type="button" data-act="minus" aria-label="Retirer 15 secondes">−15</button>
+      <button type="button" data-act="plus" aria-label="Ajouter 15 secondes">+15</button>
+      <button type="button" class="primary" data-act="skip" aria-label="Fermer le minuteur">OK</button>
     </div>`;
   el.addEventListener('click', (e) => {
     const act = e.target.closest('button')?.dataset.act;
-    if (act === 'plus') { endAt += 15000; total += 15000; rang = false; el.classList.remove('finished'); }
+    if (act === 'plus') { endAt += 15000; total += 15000; rang = false; setFinished(false); }
     if (act === 'minus') { endAt -= 15000; }
     if (act === 'skip') stopRest();
     update();
   });
   document.body.appendChild(el);
   return el;
+}
+
+function setFinished(on) {
+  el.classList.toggle('finished', on);
+  el.querySelector('.lbl').textContent = on ? 'C’est reparti !' : 'Repos';
+  el.querySelector('.sub').textContent = on ? 'Série suivante' : 'Bois une gorgée';
+  el.querySelector('.arc').style.color = on ? 'var(--accent-ink)' : 'var(--accent)';
 }
 
 /** Doit être appelé pendant un geste utilisateur pour autoriser le son sur mobile. */
@@ -60,13 +77,12 @@ function beep() {
 function update() {
   if (!el) return;
   const left = Math.max(0, endAt - Date.now());
-  const s = Math.ceil(left / 1000);
-  el.querySelector('.time').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  el.querySelector('.bar > div').style.width = `${total ? (left / total) * 100 : 0}%`;
+  const sec = Math.ceil(left / 1000);
+  el.querySelector('.time').textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  el.querySelector('.arc').setAttribute('stroke-dashoffset', String(C * (1 - (total ? left / total : 0))));
   if (left <= 0 && !rang) {
     rang = true;
-    el.classList.add('finished');
-    el.querySelector('.lbl').textContent = 'Repos terminé — série suivante !';
+    setFinished(true);
     if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 300]);
     beep();
   }
@@ -78,9 +94,8 @@ export function startRest(seconds) {
   total = seconds * 1000;
   endAt = Date.now() + total;
   rang = false;
-  el.classList.remove('finished');
+  setFinished(false);
   el.classList.add('on');
-  el.querySelector('.lbl').textContent = 'Repos';
   document.body.classList.add('timer-on');
   clearInterval(tick);
   tick = setInterval(update, 250);

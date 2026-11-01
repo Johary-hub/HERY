@@ -1,6 +1,7 @@
 import './styles.css';
 import { loadProgram } from './program.js';
 import { $$, esc } from './ui.js';
+import { icon } from './icons.js';
 import * as today from './views/today.js';
 import * as workout from './views/workout.js';
 import * as progress from './views/progress.js';
@@ -8,6 +9,15 @@ import * as body from './views/body.js';
 import * as settings from './views/settings.js';
 
 const routes = { today, workout, progress, body, settings };
+const NAV = [
+  ['today', 'home', 'Aujourd’hui'],
+  ['workout', 'dumbbell', 'Séance'],
+  ['progress', 'chart', 'Progrès'],
+  ['body', 'scale', 'Corps'],
+  ['settings', 'settings', 'Réglages'],
+];
+document.getElementById('tabbar').innerHTML = NAV.map(([r, ico, label]) =>
+  `<a href="#/${r}" data-route="${r}" aria-label="${label}">${icon(ico, 22)}<span class="lbl">${label}</span></a>`).join('');
 const app = document.getElementById('app');
 let program = null;
 let renderToken = 0;
@@ -26,7 +36,10 @@ export function navigate(path) {
 async function route() {
   const { name, param } = currentRoute();
   const token = ++renderToken;
-  $$('#tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.route === name));
+  $$('#tabbar a').forEach((a) => {
+    a.classList.toggle('active', a.dataset.route === name);
+    if (a.dataset.route === name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
   const view = routes[name];
   try {
     // Chaque vue peut exposer une fonction de nettoyage (minuteur, wake lock…)

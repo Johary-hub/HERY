@@ -19,8 +19,8 @@ export default defineConfig({
         scope: '.',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0e1116',
-        theme_color: '#0e1116',
+        background_color: '#09090b',
+        theme_color: '#09090b',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -29,7 +29,7 @@ export default defineConfig({
       },
       workbox: {
         // Tout est précaché, y compris program.json : l'app fonctionne en mode avion.
-        globPatterns: ['**/*.{js,css,html,json,svg,png,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,json,svg,png,webmanifest,woff2}'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
       },
