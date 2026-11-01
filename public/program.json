@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "name": "Plan 24 semaines — Fondation / Progression / Force",
+  "startDate": "2026-11-02",
+  "totalWeeks": 24,
+  "defaultTrainingDays": [1, 3, 5],
+  "weekdayConvention": "ISO 8601 : 1 = lundi … 7 = dimanche",
+
+  "progression": {
+    "type": "double",
+    "rule": "Si toutes les séries de travail atteignent le haut de la fourchette de reps, augmenter la charge de l'incrément de la catégorie et viser le bas de la fourchette. Sinon, garder la charge.",
+    "increments": { "lower": 5, "upper": 2.5, "isolation": 1, "time": 5, "distance": 0 }
+  },
+
+  "deload": {
+    "weeks": [8, 16, 24],
+    "setsMultiplier": 0.5,
+    "loadMultiplier": 0.9,
+    "note": "Arrondir les séries au supérieur (3 → 2). Charges arrondies à 0,5 kg."
+  },
+
+  "weekOverrides": {
+    "1": { "maxSets": 2, "note": "Semaine d'adaptation : 2 séries max par exercice" }
+  },
+
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Fondation",
+      "weeks": [1, 4],
+      "rir": "3-4",
+      "restSec": 90,
+      "cardioMin": 15,
+      "rotation": ["A1", "B1"]
+    },
+    {
+      "id": "P2",
+      "name": "Progression",
+      "weeks": [5, 12],
+      "rir": "2-3",
+      "restSec": 90,
+      "cardioMin": 20,
+      "rotation": ["A2", "B2"]
+    },
+    {
+      "id": "P3",
+      "name": "Force & autonomie",
+      "weeks": [13, 24],
+      "rir": "1-3",
+      "restSec": 120,
+      "cardioMin": 25,
+      "rotation": ["A3", "B3"],
+      "option4days": {
+        "trainingDays": [1, 2, 4, 5],
+        "rotation": ["U", "L"],
+        "unlockCondition": "Assiduité ≥ 90 % sur S1–S12"
+      }
+    }
+  ],
+
+  "warmup": "5–8 min vélo ou elliptique facile + 1 série légère (50 %) du premier exercice",
+  "minimumSession": {
+    "description": "Jour difficile : les 3 premiers exercices de la séance prévue + 10 min de cardio. Compte comme une séance terminée.",
+    "exerciseCount": 3,
+    "cardioMin": 10
+  },
+
+  "exercises": {
+    "leg_press":            { "name": "Presse à cuisses",                      "category": "lower",     "unit": "reps", "substitutes": ["goblet_squat"], "cue": "Bas du dos collé au dossier, genoux dans l'axe des pieds" },
+    "chest_press_machine":  { "name": "Développé couché machine",              "category": "upper",     "unit": "reps", "substitutes": ["db_bench"], "cue": "Omoplates serrées, coudes à ~45°" },
+    "lat_pulldown":         { "name": "Tirage vertical",                       "category": "upper",     "unit": "reps", "substitutes": ["straight_arm_pulldown"], "cue": "Tirer vers le haut de la poitrine, pas derrière la nuque" },
+    "leg_curl":             { "name": "Leg curl machine",                      "category": "isolation", "unit": "reps", "substitutes": ["db_rdl"], "cue": "Contrôler la descente sur 2 s" },
+    "shoulder_press_machine": { "name": "Développé épaules machine",          "category": "upper",     "unit": "reps", "substitutes": ["db_shoulder_press"], "cue": "Ne pas cambrer le bas du dos" },
+    "plank":                { "name": "Gainage planche",                       "category": "core",      "unit": "seconds", "substitutes": [], "cue": "Fessiers serrés, bassin neutre" },
+    "box_squat":            { "name": "Squat sur banc (goblet)",               "category": "lower",     "unit": "reps", "substitutes": ["leg_press"], "cue": "S'asseoir en contrôle, se relever sans élan" },
+    "goblet_squat":         { "name": "Goblet squat",                          "category": "lower",     "unit": "reps", "substitutes": ["leg_press"], "cue": "Haltère contre la poitrine, buste droit" },
+    "seated_row":           { "name": "Tirage horizontal assis",               "category": "upper",     "unit": "reps", "substitutes": ["db_row"], "cue": "Tirer avec les coudes, poitrine sortie" },
+    "incline_db_press":     { "name": "Développé incliné haltères",            "category": "upper",     "unit": "reps", "substitutes": ["chest_press_machine"], "cue": "Banc à 30°, descente contrôlée" },
+    "hip_thrust":           { "name": "Hip thrust",                            "category": "lower",     "unit": "reps", "substitutes": ["glute_bridge"], "cue": "Pause 1 s en haut, menton rentré" },
+    "face_pull":            { "name": "Face pull",                             "category": "isolation", "unit": "reps", "substitutes": ["reverse_fly"], "cue": "Tirer vers le front, coudes hauts" },
+    "dead_bug":             { "name": "Dead bug",                              "category": "core",      "unit": "reps_per_side", "substitutes": ["plank"], "cue": "Bas du dos plaqué au sol" },
+    "db_bench":             { "name": "Développé couché haltères",             "category": "upper",     "unit": "reps", "substitutes": ["chest_press_machine"], "cue": "Pieds au sol, omoplates serrées" },
+    "db_rdl":               { "name": "Soulevé de terre roumain haltères",     "category": "lower",     "unit": "reps", "substitutes": ["leg_curl"], "cue": "Hanches vers l'arrière, dos plat, haltères près des jambes" },
+    "farmer_carry":         { "name": "Farmer walk",                           "category": "core",      "unit": "meters", "substitutes": [], "cue": "Épaules basses, pas courts et réguliers" },
+    "barbell_squat":        { "name": "Squat (barre ou Smith)",                "category": "lower",     "unit": "reps", "substitutes": ["goblet_squat"], "cue": "Profondeur maîtrisée, genoux suivent les pieds" },
+    "barbell_rdl":          { "name": "Soulevé de terre roumain barre",        "category": "lower",     "unit": "reps", "substitutes": ["db_rdl"], "cue": "Barre glisse le long des cuisses, dos plat" },
+    "lateral_raise":        { "name": "Élévations latérales",                  "category": "isolation", "unit": "reps", "substitutes": [], "cue": "Monter jusqu'à l'horizontale, sans élan" },
+    "db_shoulder_press":    { "name": "Développé épaules haltères assis",      "category": "upper",     "unit": "reps", "substitutes": ["shoulder_press_machine"], "cue": "Dossier droit, pas de cambrure" },
+    "biceps_curl":          { "name": "Curl biceps",                           "category": "isolation", "unit": "reps", "substitutes": [], "cue": "Coudes fixes" },
+    "triceps_pushdown":     { "name": "Extension triceps poulie",              "category": "isolation", "unit": "reps", "substitutes": [], "cue": "Coudes collés au corps" },
+    "calf_raise":           { "name": "Mollets debout",                        "category": "isolation", "unit": "reps", "substitutes": [], "cue": "Amplitude complète, pause en haut" },
+    "straight_arm_pulldown": { "name": "Tirage poulie bras tendus",           "category": "upper",     "unit": "reps", "substitutes": [], "cue": "Bras quasi tendus, gainage" },
+    "db_row":               { "name": "Rowing haltère un bras",                "category": "upper",     "unit": "reps", "substitutes": [], "cue": "Dos plat, tirer vers la hanche" },
+    "glute_bridge":         { "name": "Pont fessier au sol",                   "category": "lower",     "unit": "reps", "substitutes": [], "cue": "Pousser dans les talons" },
+    "reverse_fly":          { "name": "Oiseau haltères",                       "category": "isolation", "unit": "reps", "substitutes": [], "cue": "Buste penché, bras légèrement fléchis" }
+  },
+
+  "sessions": {
+    "A1": { "name": "Full-body A — Fondation", "exercises": [
+      { "id": "leg_press",              "sets": 3, "range": [10, 12] },
+      { "id": "chest_press_machine",    "sets": 3, "range": [10, 12] },
+      { "id": "lat_pulldown",           "sets": 3, "range": [10, 12] },
+      { "id": "leg_curl",               "sets": 2, "range": [12, 15] },
+      { "id": "shoulder_press_machine", "sets": 2, "range": [10, 12] },
+      { "id": "plank",                  "sets": 2, "range": [20, 30] }
+    ]},
+    "B1": { "name": "Full-body B — Fondation", "exercises": [
+      { "id": "box_squat",        "sets": 3, "range": [10, 12] },
+      { "id": "seated_row",       "sets": 3, "range": [10, 12] },
+      { "id": "incline_db_press", "sets": 3, "range": [10, 12] },
+      { "id": "hip_thrust",       "sets": 2, "range": [12, 15] },
+      { "id": "face_pull",        "sets": 2, "range": [15, 15] },
+      { "id": "dead_bug",         "sets": 2, "range": [8, 8] }
+    ]},
+    "A2": { "name": "Full-body A — Progression", "exercises": [
+      { "id": "goblet_squat",           "sets": 3, "range": [8, 12] },
+      { "id": "db_bench",               "sets": 3, "range": [8, 12] },
+      { "id": "lat_pulldown",           "sets": 3, "range": [8, 12] },
+      { "id": "db_rdl",                 "sets": 3, "range": [10, 12] },
+      { "id": "shoulder_press_machine", "sets": 2, "range": [10, 12] },
+      { "id": "plank",                  "sets": 3, "range": [30, 45] }
+    ]},
+    "B2": { "name": "Full-body B — Progression", "exercises": [
+      { "id": "leg_press",        "sets": 3, "range": [10, 12] },
+      { "id": "seated_row",       "sets": 3, "range": [8, 12] },
+      { "id": "incline_db_press", "sets": 3, "range": [8, 12] },
+      { "id": "hip_thrust",       "sets": 3, "range": [10, 12] },
+      { "id": "face_pull",        "sets": 2, "range": [15, 15] },
+      { "id": "farmer_carry",     "sets": 3, "range": [30, 30] }
+    ]},
+    "A3": { "name": "Full-body A — Force", "exercises": [
+      { "id": "barbell_squat", "sets": 3, "range": [6, 8] },
+      { "id": "db_bench",      "sets": 3, "range": [6, 10] },
+      { "id": "lat_pulldown",  "sets": 3, "range": [8, 12] },
+      { "id": "leg_curl",      "sets": 2, "range": [10, 12] },
+      { "id": "lateral_raise", "sets": 2, "range": [12, 15] },
+      { "id": "plank",         "sets": 3, "range": [45, 60] }
+    ]},
+    "B3": { "name": "Full-body B — Force", "exercises": [
+      { "id": "barbell_rdl",       "sets": 3, "range": [6, 8] },
+      { "id": "seated_row",        "sets": 3, "range": [8, 12] },
+      { "id": "db_shoulder_press", "sets": 3, "range": [8, 10] },
+      { "id": "leg_press",         "sets": 3, "range": [10, 12] },
+      { "id": "face_pull",         "sets": 2, "range": [15, 15] },
+      { "id": "farmer_carry",      "sets": 3, "range": [30, 30] }
+    ]},
+    "U": { "name": "Haut du corps", "exercises": [
+      { "id": "db_bench",          "sets": 3, "range": [6, 10] },
+      { "id": "seated_row",        "sets": 3, "range": [8, 12] },
+      { "id": "db_shoulder_press", "sets": 2, "range": [8, 10] },
+      { "id": "lat_pulldown",      "sets": 3, "range": [8, 12] },
+      { "id": "biceps_curl",       "sets": 2, "range": [10, 12] },
+      { "id": "triceps_pushdown",  "sets": 2, "range": [10, 12] }
+    ]},
+    "L": { "name": "Bas du corps", "exercises": [
+      { "id": "barbell_squat", "sets": 3, "range": [6, 8] },
+      { "id": "barbell_rdl",   "sets": 3, "range": [8, 10] },
+      { "id": "leg_press",     "sets": 2, "range": [10, 12] },
+      { "id": "leg_curl",      "sets": 2, "range": [10, 12] },
+      { "id": "calf_raise",    "sets": 2, "range": [12, 15] },
+      { "id": "dead_bug",      "sets": 3, "range": [10, 10] }
+    ]}
+  },
+
+  "tracking": {
+    "bodyWeight": { "frequency": "3x/semaine, matin à jeun", "display": "moyenne hebdomadaire" },
+    "waist": { "frequency": "toutes les 2 semaines", "unit": "cm" },
+    "photos": { "frequency": "mensuelle" },
+    "adherenceTarget": 0.85,
+    "stallAlert": "Si la moyenne hebdo de poids ne baisse pas pendant 3 semaines consécutives, afficher un rappel : ajuster l'alimentation avant d'ajouter du cardio."
+  }
+}
