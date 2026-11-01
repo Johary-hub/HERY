@@ -36,4 +36,5 @@ Penser à **exporter une sauvegarde JSON** (Réglages) régulièrement.
 - `src/db.js` — IndexedDB (`hery`, v1 : `workouts`, `sets`, `body`, `settings`)
 - `src/session.js` — création des séances et suggestions
 - `src/views/` — un fichier par écran ; `src/timer.js` — minuteur de repos + wake lock
+- `src/video.js` — fiche vidéo par exercice (lien YouTube choisi, lu dans l’app ; recherche pré-remplie sinon)
 - `src/icons.js` — icônes SVG et anneaux de progression ; police Outfit embarquée (`@fontsource-variable/outfit`), aucune ressource externe

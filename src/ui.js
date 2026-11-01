@@ -11,7 +11,8 @@ export function toast(msg, ms = 2200) {
   el.className = 'toast';
   el.setAttribute('role', 'status');
   el.textContent = msg;
-  document.body.appendChild(el);
+  // Au-dessus d'une fenêtre modale ouverte (couche supérieure), sinon dans la page
+  (document.querySelector('dialog[open]') || document.body).appendChild(el);
   setTimeout(() => el.remove(), ms);
 }
 

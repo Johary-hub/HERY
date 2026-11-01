@@ -5,6 +5,7 @@ import { nowStamp } from '../clock.js';
 import { startRest, stopRest, keepAwake, releaseAwake } from '../timer.js';
 import { $, $$, esc, fmtDuration, unitLabel, toast } from '../ui.js';
 import { icon } from '../icons.js';
+import { openVideo } from '../video.js';
 
 const parseNum = (v) => {
   if (v == null) return null;
@@ -97,11 +98,13 @@ export async function render({ app, program, navigate }) {
     const options = [...(plannedEx.substitutes || [])];
     if (currentId !== planned.id) options.unshift(planned.id);
     const choices = options.filter((id) => id !== currentId && program.exercises[id]);
-    if (!choices.length) return '';
     const open = openSubs.has(planned.id);
     return `
-      <div class="tools"><button type="button" class="small-btn" data-act="toggle-subs" aria-expanded="${open}">${icon('swap', 18)}Remplacer</button></div>
-      ${open ? `<div class="subs">${choices.map((id) => `
+      <div class="tools">
+        <button type="button" class="small-btn" data-video="${esc(currentId)}">${icon('play', 16)}Vidéo</button>
+        ${choices.length ? `<button type="button" class="small-btn" data-act="toggle-subs" aria-expanded="${open}">${icon('swap', 18)}Remplacer</button>` : ''}
+      </div>
+      ${open && choices.length ? `<div class="subs">${choices.map((id) => `
         <button type="button" class="small-btn${id === planned.id ? '' : ' ghost'}" data-sub="${esc(id)}">${id === planned.id ? '↩ ' : ''}${esc(program.exercises[id].name)}</button>`).join('')}</div>` : ''}`;
   }
 
@@ -211,6 +214,8 @@ export async function render({ app, program, navigate }) {
       if (s.done) startRest(phase?.restSec ?? 90);
       return;
     }
+
+    if (btn.dataset.video) return openVideo(program, btn.dataset.video);
 
     if (btn.dataset.feel) {
       feeling = Number(btn.dataset.feel);

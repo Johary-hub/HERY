@@ -3,6 +3,7 @@ import { loadContext, startWorkout } from '../session.js';
 import { getActiveWorkout } from '../db.js';
 import { esc, fmtDate, unitLabel, DAY_SHORT } from '../ui.js';
 import { icon, ring } from '../icons.js';
+import { openVideo } from '../video.js';
 
 /** "Full-body A — Fondation" → ["Full-body A", "Fondation"] */
 const splitName = (name) => {
@@ -15,7 +16,8 @@ function exerciseList(program, session) {
     const ex = program.exercises[e.id];
     const r = e.range[0] === e.range[1] ? e.range[0] : `${e.range[0]}–${e.range[1]}`;
     return `<li><span class="num">${i + 1}</span>
-      <div class="grow"><div class="n">${esc(ex.name)}</div><div class="m">${e.sets} séries × ${r} ${unitLabel(ex.unit)}</div></div></li>`;
+      <div class="grow"><div class="n">${esc(ex.name)}</div><div class="m">${e.sets} séries × ${r} ${unitLabel(ex.unit)}</div></div>
+      <button type="button" class="icon-btn" data-video="${esc(e.id)}" aria-label="Vidéo : ${esc(ex.name)}">${icon('play', 18)}</button></li>`;
   }).join('')}</ul>`;
 }
 
@@ -163,6 +165,7 @@ export async function render({ app, program, navigate }) {
 
   app.addEventListener('click', async (e) => {
     const btn = e.target.closest('button');
+    if (btn?.dataset.video) return openVideo(program, btn.dataset.video);
     const act = btn?.dataset.act;
     if (!act) return;
     if (act === 'resume') return navigate('workout');
